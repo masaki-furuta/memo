@@ -1,0 +1,34 @@
+OpenStack Network Connectivity:
+
+VXLAN:
+
+   <SECURITY GROUP> ... sg-chain, i[TAM_NAME] (ingress), o[TAM_NAME] (egress) for VM
+         |
+<Compute>|                                                +------------ VLAN (VID) conversion, ovs-ofctl dump-flows -------------+
+[VM] -> tap -> [LB qbr] -> VETH qvb -> VETH qvo -> [Bridge br-int] -> Port patch-tun (patch) -> Port patch-int (patch) -> [Bridge br-tun] -> VXLAN
+                                                                                                                                               |
+ +---------------------------------------------------------------------------------------------------------------------------------------------+
+ <Network>
+ +-> [Bridge br-tun] -> Port patch-int (patch) -> Port patch-tun (patch) -> [Bridge br-int] -> qr -> NAT -> qg -> [Bridge br-ex] -> [ethX] -> GW -> ...
+             +------------ VLAN (VID) conversion, ovs-ofctl dump-flows ------------+           +---qrouter---+ ... Floating IP (DNAT, SNAT)
+                                                                                              <TENANT NETWORK> ... Neutron L3 Agent
+                                                                                               |
+                                                                                              tap (DHCP, DNS)
+                                                                                               +---qdhcp----+  ... Neutron DHCP Agent 
+
+
+VLAN:
+
+  <SECURITY GROUP> ... sg-chain, i[TAM_NAME] (ingress), o[TAM_NAME] (egress) for VM
+         |
+<Compute>|                                                +-------------- VLAN (VID) conversion, ovs-ofctl dump-flows ---------------+
+[VM] -> tap -> [LB qbr] -> VETH qvb -> VETH qvo -> [Bridge br-int] -> Port int-br-eth1 (patch) -> Port phy-br-eth1 (patch) -> [Bridge br-eth1] -> eth1 -+
+                                                                                                                                                        |
+ +------------------------------------------------------------------------------------------------------------------------------------------------------+
+<Network>
+eth1 -> [Bridge br-eth1] -> Port phy-br-eth1 (patch) -> Port int-br-eth1 (patch) -> [Bridge br-int] -> qr -> NAT -> qg -> [Bridge br-ex] -> [ethX] -> GW -> ...
+                +-------------- VLAN (VID) conversion, ovs-ofctl dump-flows ---------------+           +---qrouter---+ ... Floating IP (DNAT, SNAT)
+                                                                                                      <TENANT NETWORK> ... Neutron L3 Agent
+                                                                                                       |
+                                                                                                      tap (DHCP, DNS)
+                                                                                                       +---qdhcp----+  ... Neutron DHCP Agent 
