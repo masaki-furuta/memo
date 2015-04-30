@@ -2,7 +2,7 @@ OpenStack Network Connectivity:
 
 VXLAN:
 
-   <SECURITY GROUP> ... sg-chain, i[TAM_NAME] (ingress), o[TAM_NAME] (egress) for VM
+   <SECURITY GROUP> ... sg-chain, i[TAP_NAME] (ingress), o[TAP_NAME] (egress) for VM
          |
 <Compute>|                                                +------------ VLAN (VID) conversion, ovs-ofctl dump-flows -------------+
 [VM] -> tap -> [LB qbr] -> VETH qvb -> VETH qvo -> [Bridge br-int] -> Port patch-tun (patch) -> Port patch-int (patch) -> [Bridge br-tun] -> VXLAN
@@ -19,7 +19,7 @@ VXLAN:
 
 VLAN:
 
-  <SECURITY GROUP> ... sg-chain, i[TAM_NAME] (ingress), o[TAM_NAME] (egress) for VM
+  <SECURITY GROUP> ... sg-chain, i[TAP_NAME] (ingress), o[TAP_NAME] (egress) for VM
          |
 <Compute>|                                                +-------------- VLAN (VID) conversion, ovs-ofctl dump-flows ---------------+
 [VM] -> tap -> [LB qbr] -> VETH qvb -> VETH qvo -> [Bridge br-int] -> Port int-br-eth1 (patch) -> Port phy-br-eth1 (patch) -> [Bridge br-eth1] -> eth1 -+
