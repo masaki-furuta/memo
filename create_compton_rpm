@@ -1,0 +1,98 @@
+#!/bin/bash -x
+
+cd ~/Documents
+git clone https://github.com/chjj/compton.git compton.git
+cd compton.git
+VER=$(git tag|tail -1|sed -e 's/v//g' -e 's/_.*//g')
+COM=$(git rev-parse HEAD| awk '$0 = substr($0, 1, 10)')
+cd ..
+rm -rf compton-${VER}_${COM}
+cp -a compton.git compton-${VER}_${COM}
+tar cjf compton-${VER}_${COM}.tar.bz2 compton-${VER}_${COM}
+DAT=$(date +'%a %b %d %Y Masaki Furuta')
+
+cat<<SPEC > compton.spec
+Name:           compton
+Version:        ${VER}_${COM}
+Release:        1%{?dist}
+Summary:        A compositor for X11
+License:        MIT
+Group:          User Interface/Desktops
+Url:            https://github.com/chjj/compton
+Source:         %{name}-%{version}.tar.bz2
+BuildRequires:  gcc-c++ make pkgconfig
+BuildRequires:  pkgconfig(x11)
+BuildRequires:	pkgconfig(xcomposite)
+BuildRequires:	pkgconfig(xfixes)
+BuildRequires:	pkgconfig(xdamage)
+BuildRequires:	pkgconfig(xrender)
+BuildRequires:	pkgconfig(xext)
+BuildRequires:	pkgconfig(xrandr)
+BuildRequires:	pkgconfig(xinerama)
+BuildRequires:	pkgconfig(libdrm)
+BuildRequires:	pkgconfig(gl)
+BuildRequires:	pkgconfig(libconfig)
+BuildRequires:	pkgconfig(libpcre)
+BuildRequires:  pkgconfig(dbus-1)
+BuildRequires:  git
+BuildRequires:	asciidoc
+BuildRequires:	libxslt
+BuildRoot:      %{_tmppath}/%{name}-%{version}-build
+Prefix:         /usr
+
+
+%description
+Compton was forked from Dana Jansens' fork of xcompmgr and refactored. I fixed
+whatever bug I found, and added features I wanted. Things seem stable, but
+don't quote me on it. I will most likely be actively working on this until
+I get the features I want. This is also a learning experience for me. That
+is, I'm partially doing this out of a desire to learn Xlib.
+
+
+%prep
+#%setup -qn %{name}-%{commit}
+%setup
+
+
+%build
+# Extract the snapshot somewhere...
+# Export the COMPTON_VERSION variable (you may also pass it to make directly)
+export COMPTON_VERSION=%{version}%
+make
+make docs
+
+
+%install
+make install DESTDIR=%{buildroot}
+# desktop file is broken:
+#[   11s] ERROR: No sufficient Category definition: /home/abuild/rpmbuild/BUILDROOT/compton-0.1.0-0.x86_64//usr/share/applications/compton.desktop 
+#[   11s] ERROR: Icon file not installed: /home/abuild/rpmbuild/BUILDROOT/compton-0.1.0-0.x86_64//usr/share/applications/compton.desktop (xcompmgr)
+#[   11s] WARNING: Empty GenericName: /home/abuild/rpmbuild/BUILDROOT/compton-0.1.0-0.x86_64//usr/share/applications/compton.desktop
+rm %{buildroot}/usr/share/applications/compton.desktop
+
+
+
+%files
+%defattr(-,root,root,-)
+%doc README.md LICENSE
+%{_bindir}/compton
+%{_bindir}/compton-trans
+%{_mandir}/man1/compton.1.gz
+%{_mandir}/man1/compton-trans.1.gz
+
+
+%changelog
+* ${DAT}
+- version ${VER} ${COM}
+SPEC
+
+#exit
+
+mv -v compton.spec ~/rpmbuild/SPECS/
+mv -v compton-${VER}_${COM}.tar.bz2 ~/rpmbuild/SOURCES/
+cd ~/rpmbuild/SPECS/
+rpmbuild -bs compton.spec
+mv -v ~/rpmbuild/SRPMS/compton-${VER}_${COM}-1.fc22.src.rpm .
+sudo mock -n --rebuild ./compton-${VER}_${COM}-1.fc22.src.rpm
+cd ~/Documents
+find /var/lib/mock/fedora-22-x86_64/result -name '*.rpm' -exec mv -v {} . \;
