@@ -1,3 +1,61 @@
+[stack@director ~]$  /usr/bin/instack-virt-setup
+...
+< 
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Connection #0 to host rhn.redhat.com left intact
+* Issue another request to this URL: 'https://rhn.redhat.com/rhel-guest-image-7.0-20140506.1.x86_64.qcow2'
+* Found bundle for host rhn.redhat.com: 0x119ef50
+* About to connect() to rhn.redhat.com port 443 (#1)
+*   Trying 209.132.183.42...
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Connected to rhn.redhat.com (209.132.183.42) port 443 (#1)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+*   CAfile: /etc/pki/tls/certs/ca-bundle.crt
+  CApath: none
+* SSL connection using TLS_RSA_WITH_AES_256_CBC_SHA
+* Server certificate:
+*       subject: CN=*.redhat.com,OU=Web Operations,O=Red Hat Inc,L=Raleigh,ST=North Carolina,C=US,serialNumber=dmox-zPOCChZGgYyWu9xg8JTHSbjFg9P
+*       start date: Sep 09 18:07:24 2013 GMT
+*       expire date: Dec 12 02:08:43 2015 GMT
+*       common name: *.redhat.com
+*       issuer: CN=GeoTrust SSL CA,O="GeoTrust, Inc.",C=US
+> GET /rhel-guest-image-7.0-20140506.1.x86_64.qcow2 HTTP/1.0
+> User-Agent: curl/7.29.0
+> Host: rhn.redhat.com
+> Accept: */*
+> 
+< HTTP/1.1 404 Not Found
+< Date: Sat, 14 Nov 2015 14:37:58 GMT
+< Server: Apache
+< X-Frame-Options: SAMEORIGIN
+< Set-Cookie: pxt-session-cookie=5106706800x828fff292be4abdc909dfc80bb0c1ee4; path=/; domain=rhn.redhat.com; expires=Sun, 15-Nov-2015 14:37:58 GMT; secure
+< Pragma: no-cache
+< Cache-control: no-cache
+< Content-Length: 39673
+< X-Trace: 1BDC3B07737920D450FB780AFE6977CBA23254A7CE8C7D857FDCB5DB2D
+< Connection: close
+< Content-Type: text/html; charset=UTF-8
+< Expires: Sat, 14 Nov 2015 14:37:58 GMT
+< 
+{ [data not shown]
+100 39673  100 39673    0     0  21685      0  0:00:01  0:00:01 --:--:-- 33735
+* Closing connection 1
+Server returned an unexpected response code. [404]
+
+
+[stack@director ~]$ sudo vi /usr/share/diskimage-builder/elements/rhel7/root.d/10-rhel7-cloud-image
+[stack@director ~]$ diff -u /usr/share/diskimage-builder/elements/rhel7/root.d/10-rhel7-cloud-image*
+--- /usr/share/diskimage-builder/elements/rhel7/root.d/10-rhel7-cloud-image     2015-11-15 00:03:30.738000000 +0900
++++ /usr/share/diskimage-builder/elements/rhel7/root.d/10-rhel7-cloud-image-2015-11-15  2015-11-15 00:02:54.641000000 +0900
+@@ -28,7 +28,7 @@
+ else
+     DIB_RELEASE=${DIB_RELEASE:-latest}
+     DIB_CLOUD_IMAGES=${DIB_CLOUD_IMAGES:-http://rhn.redhat.com}
+-    BASE_IMAGE_FILE=${BASE_IMAGE_FILE:-rhel-guest-image-7.0-20140930.0.x86_64.qcow2}
++    BASE_IMAGE_FILE=${BASE_IMAGE_FILE:-rhel-guest-image-7.0-20140506.1.x86_64.qcow2}
+     BASE_IMAGE_TAR=$DIB_RELEASE-rhel-server-$ARCH-latest.tgz
+     IMAGE_LOCATION=$DIB_CLOUD_IMAGES/$BASE_IMAGE_FILE
+     CACHED_IMAGE=$DIB_IMAGE_CACHE/$BASE_IMAGE_FILE
+
 [stack@director ~]$ sudo vi /usr/share/diskimage-builder/elements/redhat-common/bin/extract-image
 [stack@director ~]$ diff -u /usr/share/diskimage-builder/elements/redhat-common/bin/extract-image*
 --- /usr/share/diskimage-builder/elements/redhat-common/bin/extract-image       2015-11-15 00:07:32.463000000 +0900
