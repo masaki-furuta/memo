@@ -79,3 +79,7 @@ Server returned an unexpected response code. [404]
 + DIB_IMAGE_CACHE=/home/stack/.cache/image-create
 + CACHED_IMAGE=/home/stack/.cache/image-create/rhel-guest-image-7.0-20140930.0.x86_64.qcow2
 + CACHED_TAR=/home/stack/.cache/image-create/latest-rhel-server-x86_64-latest.tgz
+
+Get rhel-guest-image-7.1-20150224.0.x86_64.qcow2 from https://access.redhat.com/downloads/content/69/ver=/rhel---7/7.1/x86_64/product-downloads and please it under /tmp/
+
+export DIB_LOCAL_IMAGE=/tmp/rhel-guest-image-7.1-20150224.0.x86_64.qcow2
