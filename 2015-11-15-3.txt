@@ -64,5 +64,6 @@ rhel-guest-image-7.1-20150224.0.x86_64.qcow2
 [stack@instack ~]$ export DIB_NO_TMPFS=1
 [stack@instack ~]$ export NODE_DIST=rhel7
 [stack@instack ~]$ export DIB_LOCAL_IMAGE=rhel-guest-image-7.1-20150224.0.x86_64.qcow2
+[stack@instack ~]$ export DIB_YUM_REPO_CONF="/etc/yum.repos.d/RHOS7on7.repo"
 [stack@instack ~]$ openstack overcloud image build --all --debug
 
