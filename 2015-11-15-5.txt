@@ -1,0 +1,84 @@
+[stack@instack ~]$ openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 1 baremetal
++----------------------------+--------------------------------------+
+| Field                      | Value                                |
++----------------------------+--------------------------------------+
+| OS-FLV-DISABLED:disabled   | False                                |
+| OS-FLV-EXT-DATA:ephemeral  | 0                                    |
+| disk                       | 40                                   |
+| id                         | 94e9ef69-0cca-4f80-a32b-0f05b4191a15 |
+| name                       | baremetal                            |
+| os-flavor-access:is_public | True                                 |
+| ram                        | 4096                                 |
+| rxtx_factor                | 1.0                                  |
+| swap                       |                                      |
+| vcpus                      | 1                                    |
++----------------------------+--------------------------------------+
+[stack@instack ~]$ openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" baremetal
++----------------------------+-----------------------------------------------------+
+| Field                      | Value                                               |
++----------------------------+-----------------------------------------------------+
+| OS-FLV-DISABLED:disabled   | False                                               |
+| OS-FLV-EXT-DATA:ephemeral  | 0                                                   |
+| disk                       | 40                                                  |
+| id                         | 94e9ef69-0cca-4f80-a32b-0f05b4191a15                |
+| name                       | baremetal                                           |
+| os-flavor-access:is_public | True                                                |
+| properties                 | capabilities:boot_option='local', cpu_arch='x86_64' |
+| ram                        | 4096                                                |
+| rxtx_factor                | 1.0                                                 |
+| swap                       |                                                     |
+| vcpus                      | 1                                                   |
++----------------------------+-----------------------------------------------------+
+[stack@instack ~]$ neutron subnet-list
++--------------------------------------+------+--------------+---------------------------------------------+
+| id                                   | name | cidr         | allocation_pools                            |
++--------------------------------------+------+--------------+---------------------------------------------+
+| dcba3201-508a-454f-b8d5-a0144b124881 |      | 192.0.2.0/24 | {"start": "192.0.2.5", "end": "192.0.2.24"} |
++--------------------------------------+------+--------------+---------------------------------------------+
+[stack@instack ~]$ neutron subnet-show dcba3201-508a-454f-b8d5-a0144b124881 | grep dns
+| dns_nameservers   |                                                               |
+[stack@instack ~]$ neutron subnet-update --dns-nameserver 192.168.122.1 dcba3201-508a-454f-b8d5-a0144b124881 | grep dns
+[stack@instack ~]$ neutron subnet-show dcba3201-508a-454f-b8d5-a0144b124881 | grep dns
+| dns_nameservers   | 192.168.122.1
+[stack@instack ~]$ openstack management plan list
++--------------------------------------+-----------+-------------+------------------------------------------------------------------+
+| uuid                                 | name      | description | roles                                                            |
++--------------------------------------+-----------+-------------+------------------------------------------------------------------+
+| 8d6d60db-9ee7-4c6f-8569-0a3a47a33fd9 | overcloud | None        | Ceph-Storage, Cinder-Storage, Controller, Compute, Swift-Storage |
++--------------------------------------+-----------+-------------+------------------------------------------------------------------+
+[stack@instack ~]$ openstack overcloud deploy --plan 8d6d60db-9ee7-4c6f-8569-0a3a47a33fd9 --debug
+...
+92.0.2.6", "description": "VIP for Nova API internal endpoint", "output_key": "NovaInternalVip"}], "template_description": "No description"}}
+
+Stack failed with status: Resource CREATE failed: Error: resources.ComputeNodesPostDeployment.resources.ComputePuppetDeployment.resources[0]: Deployment to server failed: deploy_status_code: Deployment exited with non-zero status code: 1
+ERROR: openstack Heat Stack create failed.
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/cliff/app.py", line 295, in run_subcommand
+    result = cmd.run(parsed_args)
+  File "/usr/lib/python2.7/site-packages/cliff/command.py", line 53, in run
+    self.take_action(parsed_args)
+  File "/usr/lib/python2.7/site-packages/rdomanager_oscplugin/v1/overcloud_deploy.py", line 1225, in take_action
+    self._deploy_tuskar(stack, parsed_args)
+  File "/usr/lib/python2.7/site-packages/rdomanager_oscplugin/v1/overcloud_deploy.py", line 616, in _deploy_tuskar
+    environments, parsed_args.timeout)
+  File "/usr/lib/python2.7/site-packages/rdomanager_oscplugin/v1/overcloud_deploy.py", line 449, in _heat_deploy
+    raise Exception("Heat Stack create failed.")
+Exception: Heat Stack create failed.
+DEBUG: openstackclient.shell clean_up DeployOvercloud
+DEBUG: openstackclient.shell got an error: Heat Stack create failed.
+ERROR: openstackclient.shell Traceback (most recent call last):
+  File "/usr/lib/python2.7/site-packages/openstackclient/shell.py", line 176, in run
+    return super(OpenStackShell, self).run(argv)
+  File "/usr/lib/python2.7/site-packages/cliff/app.py", line 230, in run
+    result = self.run_subcommand(remainder)
+  File "/usr/lib/python2.7/site-packages/cliff/app.py", line 295, in run_subcommand
+    result = cmd.run(parsed_args)
+  File "/usr/lib/python2.7/site-packages/cliff/command.py", line 53, in run
+    self.take_action(parsed_args)
+  File "/usr/lib/python2.7/site-packages/rdomanager_oscplugin/v1/overcloud_deploy.py", line 1225, in take_action
+    self._deploy_tuskar(stack, parsed_args)
+  File "/usr/lib/python2.7/site-packages/rdomanager_oscplugin/v1/overcloud_deploy.py", line 616, in _deploy_tuskar
+    environments, parsed_args.timeout)
+  File "/usr/lib/python2.7/site-packages/rdomanager_oscplugin/v1/overcloud_deploy.py", line 449, in _heat_deploy
+    raise Exception("Heat Stack create failed.")
+Exception: Heat Stack create failed.
