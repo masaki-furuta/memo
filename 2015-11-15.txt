@@ -1,3 +1,5 @@
+https://bugzilla.redhat.com/show_bug.cgi?id=1235368
+
 [stack@director ~]$  /usr/bin/instack-virt-setup
 ...
 < 
