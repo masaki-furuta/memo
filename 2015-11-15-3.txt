@@ -53,8 +53,16 @@ secured.
 
 DEBUG: openstackclient.shell clean_up InstallPlugin
 
+--
+
+[stack@director ~]$ scp rhel-guest-image-7.1-20150224.0.x86_64.qcow2 stack@$(cat /var/lib/libvirt/dnsmasq/default.leases | grep $(tripleo get-vm-mac instack) | awk '{print $3;}'):
+rhel-guest-image-7.1-20150224.0.x86_64.qcow2  
+
+--
+
 [stack@instack ~]$ . stackrc 
 [stack@instack ~]$ export DIB_NO_TMPFS=1
 [stack@instack ~]$ export NODE_DIST=rhel7
+[stack@instack ~]$ export DIB_LOCAL_IMAGE=rhel-guest-image-7.1-20150224.0.x86_64.qcow2
 [stack@instack ~]$ openstack overcloud image build --all --debug
 
