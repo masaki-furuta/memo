@@ -1,0 +1,95 @@
+[stack@instack ~]$ ls -lt
+total 1813968
+-rw-r--r--. 1 stack stack  158443520 Nov 14 16:48 fedora-user.qcow2
+-rw-rw-r--. 1 stack stack     662660 Nov 14 16:48 dib-overcloud-full.log
+-rw-r--r--. 1 stack stack 1004913152 Nov 14 16:48 overcloud-full.qcow2
+-rw-r--r--. 1 root  root    34177501 Nov 14 16:46 overcloud-full.initrd
+-rwxr-xr-x. 1 root  root     5027616 Nov 14 16:46 overcloud-full.vmlinuz
+drwxrwxr-x. 3 stack stack       4096 Nov 14 16:46 overcloud-full.d
+-rw-rw-r--. 1 stack stack    6820818 Nov 14 16:40 dib-discovery.log
+-rwxr-xr-x. 1 stack stack    5026624 Nov 14 16:40 discovery-ramdisk.kernel
+-rw-r--r--. 1 stack stack  153971021 Nov 14 16:40 discovery-ramdisk.initramfs
+drwxrwxr-x. 3 stack stack       4096 Nov 14 16:40 discovery-ramdisk.d
+-rw-rw-r--. 1 stack stack     246287 Nov 14 16:31 dib-deploy.log
+-rwxr-xr-x. 1 stack stack    5026624 Nov 14 16:31 deploy-ramdisk-ironic.kernel
+-rw-r--r--. 1 stack stack   59158986 Nov 14 16:31 deploy-ramdisk-ironic.initramfs
+drwxrwxr-x. 3 stack stack       4096 Nov 14 16:31 deploy-ramdisk-ironic.d
+-rw-r-----. 1 stack stack  425956864 Nov 14 16:22 rhel-guest-image-7.1-20150224.0.x86_64.qcow2
+-rw-------. 1 stack stack        226 Nov 14 16:19 stackrc
+-rw-rw-r--. 1 stack stack       1398 Nov 14 16:11 undercloud-passwords.conf
+-rw-r--r--. 1 stack stack       5845 Nov 14 15:56 instackenv.json
+-rw-r--r--. 1 stack stack       5229 Nov 14 15:56 undercloud.conf
+[stack@instack ~]$ openstack overcloud image upload --debug
+...
+Image "bm-deploy-ramdisk" was uploaded.
++--------------------------------------+-------------------+-------------+----------+--------+
+|                  ID                  |        Name       | Disk Format |   Size   | Status |
++--------------------------------------+-------------------+-------------+----------+--------+
+| 3de250e3-33c6-4620-adef-ed34fe869978 | bm-deploy-ramdisk |     ari     | 59158986 | active |
++--------------------------------------+-------------------+-------------+----------+--------+
+DEBUG: rdomanager_oscplugin.v1.overcloud_image.UploadOvercloudImage copy discovery images to HTTP BOOT dir
+DEBUG: openstackclient.shell clean_up UploadOvercloudImage
+[stack@instack ~]$ 
+[stack@instack ~]$ openstack image list
++--------------------------------------+------------------------+
+| ID                                   | Name                   |
++--------------------------------------+------------------------+
+| f9491e8d-829d-4de4-b23f-998d175af62e | bm-deploy-kernel       |
+| 3de250e3-33c6-4620-adef-ed34fe869978 | bm-deploy-ramdisk      |
+| 95046771-aefb-4845-8dce-04c10cc19199 | overcloud-full         |
+| db6e88d7-25ec-477c-8e90-32d44501b79c | overcloud-full-vmlinuz |
+| b785a838-fd06-45d0-a81d-a1be2d04287c | overcloud-full-initrd  |
++--------------------------------------+------------------------+
+
+[stack@instack ~]$ sed -i.orig -e "s/root/stack/g" instackenv.json
+[stack@instack ~]$ sudo rm /var/lib/ironic-discoverd/discoverd.sqlite
+[stack@instack ~]$ sudo systemctl restart openstack-ironic-discoverd
+[stack@instack ~]$ sudo journalctl -b -u openstack-ironic-discoverd
+...
+Nov 14 16:52:19 instack.localdomain systemd[1]: Started Hardware introspection service for OpenStack
+Nov 14 16:52:20 instack.localdomain ironic-discoverd[19196]: INFO:ironic_discoverd.main:Enabled proc
+Nov 14 16:52:20 instack.localdomain ironic-discoverd[19196]: INFO:werkzeug: * Running on http://0.0.0.0:5050/
+
+[stack@instack ~]$ openstack baremetal import --json instackenv.json
+[stack@instack ~]$ openstack baremetal list
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+| UUID                                 | Name | Instance UUID | Power State | Provision State | Maintenance |
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+| e05134b0-868f-4aa4-9c4d-32f36c0eee6f | None | None          | power off   | available       | False       |
+| 0fd07dd1-2062-45d7-bda4-d494cab81f44 | None | None          | power off   | available       | False       |
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+
+[stack@instack ~]$ for U in $(openstack baremetal list | awk '/-/ { print $2 }');do openstack baremetal power --off $U;ironic node-update $U replace maintenance=false;ironic node-set-provision-state $U manage;done;openstack baremetal list
++------------------------+--------------------------------------------------------------------------+
+| Property               | Value                                                                    |
++------------------------+--------------------------------------------------------------------------+
+| target_power_state     | None                                                                     |
+| extra                  | {}                                                                       |
+| last_error             | None                                                                     |
+| updated_at             | 2015-11-14T21:56:23+00:00                                                |
+...
+| driver_internal_info   | {}                                                                       |
+| chassis_uuid           |                                                                          |
+| instance_info          | {}                                                                       |
++------------------------+--------------------------------------------------------------------------+
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+| UUID                                 | Name | Instance UUID | Power State | Provision State | Maintenance |
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+| e05134b0-868f-4aa4-9c4d-32f36c0eee6f | None | None          | power off   | manageable      | False       |
+| 0fd07dd1-2062-45d7-bda4-d494cab81f44 | None | None          | power off   | manageable      | False       |
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+[stack@instack ~]$ openstack baremetal configure boot
+[stack@instack ~]$ openstack baremetal introspection bulk start --debug
+..
+river_internal_info": {"clean_steps": null}, "instance_info": {}}
+
+Node 0fd07dd1-2062-45d7-bda4-d494cab81f44 has been set to available.
+Discovery completed.
+DEBUG: openstackclient.shell clean_up StartBaremetalIntrospectionBulk
+[stack@instack ~]$ openstack baremetal list
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+| UUID                                 | Name | Instance UUID | Power State | Provision State | Maintenance |
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
+| e05134b0-868f-4aa4-9c4d-32f36c0eee6f | None | None          | power off   | available       | False       |
+| 0fd07dd1-2062-45d7-bda4-d494cab81f44 | None | None          | power off   | available       | False       |
++--------------------------------------+------+---------------+-------------+-----------------+-------------+
