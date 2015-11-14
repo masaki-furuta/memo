@@ -1,0 +1,54 @@
+[stack@director ~]$ scp /etc/yum.repos.d/RHOS7on7.repo root@$(cat /var/lib/libvirt/dnsmasq/default.leases | grep $(tripleo get-vm-mac instack) | awk '{print $3;}'):/etc/yum.repos.d/
+RHOS7on7.repo                                                    100% 3878     3.8KB/s   00:00 
+[stack@director ~]$ ssh root@$(cat /var/lib/libvirt/dnsmasq/default.leases | grep $(tripleo get-vm-mac instack) | awk '{print $3;}')
+Last login: Sat Nov 14 16:05:30 2015 from 192.168.122.1
+[root@instack ~]# su - stack
+Last login: Sat Nov 14 16:05:34 EST 2015 on pts/0
+[stack@instack ~]$ sudo yum install -y python-rdomanager-oscplugin
+...
+  texlive-kpathsea.noarch 2:svn28792.0-32.el7                                                      
+  texlive-kpathsea-bin.x86_64 2:svn27347.0-32.20130427_r30134.el7                                  
+  texlive-kpathsea-lib.x86_64 2:2012-32.20130427_r30134.el7                                        
+
+Complete!
+[stack@instack ~]$ openstack undercloud install --debug
+...
+| uuid        | 8d6d60db-9ee7-4c6f-8569-0a3a47a33fd9                          |
++-------------+---------------------------------------------------------------+
+dib-run-parts Sat Nov 14 16:19:00 EST 2015 101-plan-add-roles completed
+----------------------- PROFILING -----------------------
+
+Target: post-configure.d
+
+Script                                     Seconds
+---------------------------------------  ----------
+
+10-tftp-iptables                              0.618
+100-tuskar-api                                0.383
+101-plan-add-roles                           25.107
+68-ironic-conductor                           0.852
+80-seedstack-masquerade                       0.207
+98-undercloud-setup                          45.464
+99-admin-swiftoperator-role                   1.380
+99-refresh-completed                          0.359
+99-restart-discovery                          0.299
+
+--------------------- END PROFILING ---------------------
+[2015-11-14 16:19:00,126] (os-refresh-config) [INFO] Completed phase post-configure
+os-refresh-config completed successfully
+Generated new ssh key in ~/.ssh/id_rsa
+
+#############################################################################
+instack-install-undercloud complete.
+
+The file containing this installation's passwords is at
+/home/stack/undercloud-passwords.conf.
+
+There is also a stackrc file at /home/stack/stackrc.
+
+These files are needed to interact with the OpenStack services, and should be
+secured.
+
+#############################################################################
+
+DEBUG: openstackclient.shell clean_up InstallPlugin
