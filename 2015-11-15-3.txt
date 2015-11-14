@@ -52,3 +52,9 @@ secured.
 #############################################################################
 
 DEBUG: openstackclient.shell clean_up InstallPlugin
+
+[stack@instack ~]$ . stackrc 
+[stack@instack ~]$ export DIB_NO_TMPFS=1
+[stack@instack ~]$ export NODE_DIST=rhel7
+[stack@instack ~]$ openstack overcloud image build --all --debug
+
