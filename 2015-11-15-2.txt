@@ -1,0 +1,73 @@
+[mfuruta@w541 ~]$ ssh root@192.168.123.253
+Last login: Sun Nov 15 05:29:24 2015 from 192.168.123.1
+[root@director ~]# cat ./reposync_openstack-7on7 
+#!/bin/bash -x
+
+yum -y install createrepo yum-utils
+
+mkdir -pv /tmp/repo
+cd /tmp/repo
+
+for R in \
+rhel-7-server-rpms \
+rhel-7-server-optional-rpms \
+rhel-7-server-extras-rpms \
+rhel-7-server-openstack-7.0-rpms \
+rhel-7-server-openstack-7.0-director-rpms \
+;do \
+reposync --gpgcheck -l --repoid=${R} --download_path=/tmp/repo --downloadcomps --download-metadata
+createrepo -v /tmp/repo/${R} -g comps.xml || createrepo -v /tmp/repo/${R}
+
+cat >> /etc/yum.repos.d/RHOS7on7.repo << EOR
+[${R}-local]
+#baseurl=file:///tmp/repo/${R}
+baseurl=http://192.168.123.1/repo/${R}
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+skip_broken=1
+skip_if_unavailable=1
+
+EOR
+done
+[root@director ~]# yum -y install createrepo yum-utils
+[root@director ~]# rsync -avt -e ssh /tmp/repo root@192.168.123.1:/var/www/html/ 
+[root@w541 ~]# yum -y install httpd
+[root@w541 ~]# sudo firewall-cmd --add-port=80/tcp
+[root@w541 ~]# systemctl enable httpd
+[root@w541 ~]# systemctl start httpd
+
+--
+
+[stack@director ~]$ cat /etc/yum.repos.d/RHOS7on7.repo 
+[rhel-7-server-rpms-local]
+baseurl=http://192.168.123.1/repo/rhel-7-server-rpms
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+skip_broken=1
+skip_if_unavailable=1
+
+[rhel-7-server-optional-rpms-local]
+baseurl=http://192.168.123.1/repo/rhel-7-server-optional-rpms
+...
+[stack@director ~]$ rm -fv .cache/image-create/*tgz
+[stack@director ~]$ sudo virsh undefine instack
+[stack@director ~]$ export DIB_LOCAL_IMAGE=rhel-guest-image-7.1-20150224.0.x86_64.qcow2
+[stack@director ~]$ export NODE_DIST=rhel7
+[stack@director ~]$ export DIB_YUM_REPO_CONF="/etc/yum.repos.d/RHOS7on7.repo"
+[stack@director ~]$ /usr/bin/instack-virt-setup 2>&1 | tee -a LOG3
+...
++ true
+++ cat /var/lib/libvirt/dnsmasq/default.leases
+++ awk '{print $3;}'
++++ tripleo get-vm-mac instack
+++ grep 52:54:00:7b:d1:9c
++ IP=192.168.122.160
++ '[' -n 192.168.122.160 ']'
++ set +x
+instack vm IP address is 192.168.122.160
+You can connect by running:
+ssh root@192.168.122.160
+And then su to the stack user:
+su - stack
