@@ -1,0 +1,21 @@
+[stack@director ~]$ sudo vi /usr/share/diskimage-builder/elements/redhat-common/bin/extract-image
+[stack@director ~]$ diff -u /usr/share/diskimage-builder/elements/redhat-common/bin/extract-image*
+--- /usr/share/diskimage-builder/elements/redhat-common/bin/extract-image       2015-11-15 00:07:32.463000000 +0900
++++ /usr/share/diskimage-builder/elements/redhat-common/bin/extract-image-2015-11-15    2015-11-15 00:05:55.103000000 +0900
+@@ -1,4 +1,4 @@
+-#!/bin/bash -x
++#!/bin/bash
+ 
+ # Intended to be called from the root.d cloud-image script as follows:
+ # $TMP_HOOKS_PATH/bin/extract-image $BASE_IMAGE_FILE $BASE_IMAGE_TAR $IMAGE_LOCATION $CACHED_IMAGE
+[stack@director ~]$  /usr/bin/instack-virt-setup 2>&1 |tee -a LOG2
+...
+[stack@director ~]$ grep CAC LOG2
++ export DIB_IMAGE_CACHE=/home/stack/.cache/image-create
++ DIB_IMAGE_CACHE=/home/stack/.cache/image-create
++ export DIB_IMAGE_CACHE=/home/stack/.cache/image-create
++ DIB_IMAGE_CACHE=/home/stack/.cache/image-create
++ export DIB_IMAGE_CACHE=/home/stack/.cache/image-create
++ DIB_IMAGE_CACHE=/home/stack/.cache/image-create
++ CACHED_IMAGE=/home/stack/.cache/image-create/rhel-guest-image-7.0-20140930.0.x86_64.qcow2
++ CACHED_TAR=/home/stack/.cache/image-create/latest-rhel-server-x86_64-latest.tgz
